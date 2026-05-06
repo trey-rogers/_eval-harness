@@ -1,7 +1,6 @@
-[README.md](https://github.com/user-attachments/files/27440958/README.md)
 # Skill eval harness (M2)
 
-This directory defines **behavioral evals** for SKILL.md contained within the project skill directories (clone/fork this repo within your project `.cursor/skills`), **cross-model benchmarking** against any model your installed CLI accepts (`agent --list-models` for Cursor, Anthropic ids for Claude Code), and scripts to compile prompt packs into `evals/evals.json` (schema: [`references/schemas.md`](references/schemas.md)).
+This directory defines **behavioral evals** for Cursor skills in this repository, **cross-model benchmarking** against any model your installed CLI accepts (`agent --list-models` for Cursor, Anthropic ids for Claude Code), and scripts to compile prompt packs into `evals/evals.json` (schema: [`references/schemas.md`](references/schemas.md)).
 
 **New here?** Start with [GETTING_STARTED.md](GETTING_STARTED.md) (PATH, auth, first `ev` run, compiling `prompts.jsonl`).
 
@@ -25,7 +24,7 @@ Skills are **auto-discovered** from the filesystem: any directory under the skil
 | `scripts/aggregate_benchmark.py` | Roll up per-eval `grading.json` files into `benchmark.json` / `benchmark.md` under each model × skill run. |
 | `scripts/run_matrix.py`       | Run executor + grader via Cursor `agent -p` or Claude `claude -p`; aggregate + optional scorecard.        |
 | `references/schemas.md`       | JSON shapes for `evals.json`, `grading.json`, `benchmark.json`.                                         |
-| `bin/skilleval`               | At **skills repo root**; thin wrapper around `run_matrix.py` — **use this CLI** for matrix runs (see §4). |
+| `bin/skilleval`               | Thin wrapper around `run_matrix.py` — **use this CLI** for matrix runs (see §4).                          |
 | `bin/ev`                      | Symlink to `skilleval` (short command).                                                                   |
 | `results/`                    | Gitignored run outputs (create as needed).                                                                |
 
@@ -41,7 +40,7 @@ Each skill that participates ships:
 └── rubric.md        # Optional; copy from template if you want weighted criteria
 ```
 
-After changing `prompts.jsonl`, regenerate `evals.json` with `python3 _eval-harness/scripts/jsonl_to_evals.py` — see [GETTING_STARTED.md § Editing eval prompts](GETTING_STARTED.md#editing-eval-prompts).
+After changing `prompts.jsonl`, regenerate `evals.json` with `python3 scripts/jsonl_to_evals.py` — see [GETTING_STARTED.md § Editing eval prompts](GETTING_STARTED.md#editing-eval-prompts).
 
 ## 3. Authoring behavioral evals (prompts.jsonl)
 
@@ -59,15 +58,15 @@ After changing `prompts.jsonl`, regenerate `evals.json` with `python3 _eval-harn
   - `**name**` (string, optional): short label for viewers and benchmarks.
   - `**negative_control**` (bool, optional): annotate the negative-control case; does not change schema in `evals.json` but documents intent for authors and graders.
 5. Optionally add `evals/rubric.md` for human or LLM-judge scoring when binary expectations are insufficient.
-6. Run `python3 _eval-harness/scripts/jsonl_to_evals.py` (see [GETTING_STARTED.md](GETTING_STARTED.md#editing-eval-prompts)) to refresh `evals/evals.json`.
-7. Either run `**ev` / `skilleval**` (see §4), or produce the same artifacts by hand: lay out per-eval directories with `grading.json` under each config (see [`references/schemas.md`](references/schemas.md)), then run `python3 _eval-harness/scripts/aggregate_benchmark.py <that-skill-run-dir> --skill-name <name> --skill-path <path>` so `benchmark.json` lands next to the eval tree (for example under `_eval-harness/results/<run>/<model_id>/<skill_name>/`).
+6. Run `python3 scripts/jsonl_to_evals.py` (see [GETTING_STARTED.md](GETTING_STARTED.md#editing-eval-prompts)) to refresh `evals/evals.json`.
+7. Either run `**ev` / `skilleval**` (see §4), or produce the same artifacts by hand: lay out per-eval directories with `grading.json` under each config (see [`references/schemas.md`](references/schemas.md)), then run `python3 scripts/aggregate_benchmark.py <that-skill-run-dir> --skill-name <name> --skill-path <path>` so `benchmark.json` lands next to the eval tree (for example under `results/<run>/<model_id>/<skill_name>/`).
 
 **Cross-model scorecard**
 
 After you have one `benchmark.json` per model per skill under a single run directory (standalone scorecard from existing outputs; when you run the matrix with `--scorecard`, `ev` / `skilleval` invokes this for you):
 
 ```bash
-python3 _eval-harness/scripts/matrix_scorecard.py _eval-harness/results/<run_timestamp>
+python3 scripts/matrix_scorecard.py results/<run_timestamp>
 ```
 
 This writes three artifacts under the run directory:
@@ -86,7 +85,7 @@ To see what the installed CLI accepts: run `ev --list` (auto-discovered runnable
 
 PATH, backend auth, first discovery/run, `ev` vs shell `eval`, absolute-path invocation, and the `jsonl_to_evals.py` compile command: **[GETTING_STARTED.md](GETTING_STARTED.md)**.
 
-Invocation is via `**ev`** or `**skilleval*`* at the skills repo’s `bin/` (wrappers around `_eval-harness/scripts/run_matrix.py`). Running real evals requires an LLM CLI on **PATH** (Cursor `agent` or Claude Code `claude`).
+Invocation is via `**ev`** or `**skilleval*`* in `bin/` (wrappers around `scripts/run_matrix.py`). Running real evals requires an LLM CLI on **PATH** (Cursor `agent` or Claude Code `claude`).
 
 `**--backend`**: `auto` (default) picks `EVAL_MATRIX_BACKEND` if set to `cursor` or `claude`, else `agent` if on PATH, otherwise `claude`. Use `--backend cursor` or `--backend claude` to force.
 
@@ -128,10 +127,10 @@ ev --backend cursor -m composer-2-fast -s submit-pr \
   --eval-ids 1,2,6 --cwd /path/to/cmpt-android --repo-root /path/to/.cursor/skills
 ```
 
-**Outputs** (under `--out` or `_eval-harness/results/<UTC>/`):
+**Outputs** (under `--out` or `results/<UTC>/`):
 
 - `<model_id>/<skill_name>/eval-<id>/<with_skill|without_skill>/run-1/` — `eval_metadata.json`, `transcript.md`, `outputs/response.md`, `grading.json`, `timing.json`
-- `<model_id>/<skill_name>/benchmark.json` — from `_eval-harness/scripts/aggregate_benchmark.py` with `metadata.executor_model` and `metadata.llm_backend` set
+- `<model_id>/<skill_name>/benchmark.json` — from `scripts/aggregate_benchmark.py` with `metadata.executor_model` and `metadata.llm_backend` set
 - `scorecard.md` / `scorecard-detail.md` / `scorecard.json` — when `--scorecard` is passed
 
 **Notes**

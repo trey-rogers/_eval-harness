@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# Skills behavioral eval matrix. Add _eval-harness/bin/ to PATH, then e.g.:
+#   skilleval --list
+#   skilleval -m claude-sonnet-4-20250514 -s submit-pr
+# (You cannot use the name "eval" as a command in bash/zsh — it is a shell builtin.)
+set -e
+_bin="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+_harness="$(CDPATH= cd -- "$_bin/.." && pwd)"
+exec python3 "$_harness/scripts/run_matrix.py" "$@"

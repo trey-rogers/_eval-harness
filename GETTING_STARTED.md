@@ -16,15 +16,15 @@ Path from zero to a working eval run. Authoring conventions, scorecard behavior,
 
 ## 1. Put the CLI on your PATH
 
-From the **skills repository root** (the directory that contains `bin/` and `_eval-harness/`):
+From the **eval harness root** (the `_eval-harness/` directory):
 
 ```bash
-export PATH="/absolute/path/to/skills/bin:$PATH"
+export PATH="/absolute/path/to/_eval-harness/bin:$PATH"
 ```
 
 Add that line to your shell profile if you use `ev` / `skilleval` often.
 
-**Why `ev` and not `eval`?** In bash and zsh, `eval` is a **shell builtin** (it executes arguments as shell code). A program named `eval` on `PATH` is not run when you type `eval --list` — the shell runs the builtin instead. Use `**ev`**, `**skilleval`**, or an alias, e.g. `alias sk-eval='/absolute/path/to/skills/bin/skilleval'`.
+**Why `ev` and not `eval`?** In bash and zsh, `eval` is a **shell builtin** (it executes arguments as shell code). A program named `eval` on `PATH` is not run when you type `eval --list` — the shell runs the builtin instead. Use `**ev`**, `**skilleval`**, or an alias, e.g. `alias sk-eval='/absolute/path/to/_eval-harness/bin/skilleval'`.
 
 ## 2. Verify discovery (no API calls)
 
@@ -56,11 +56,11 @@ ev --backend cursor -m composer-2-fast -s submit-pr
 Call the wrapper by **absolute path**; flags are the same as above.
 
 ```bash
-/absolute/path/to/skills/bin/ev --list
-/absolute/path/to/skills/bin/ev --backend cursor -m composer-2-fast -s submit-pr
+/absolute/path/to/_eval-harness/bin/ev --list
+/absolute/path/to/_eval-harness/bin/ev --backend cursor -m composer-2-fast -s submit-pr
 ```
 
-`ev` and `skilleval` are thin wrappers around `_eval-harness/scripts/run_matrix.py` if you need to read or debug the implementation.
+`ev` and `skilleval` are thin wrappers around `scripts/run_matrix.py` if you need to read or debug the implementation.
 
 ## Outputs
 
@@ -71,7 +71,7 @@ Runs write under `_eval-harness/results/<UTC>/` (or `--out`). Each cell includes
 Cases live in `<skill>/evals/prompts.jsonl`. After edits, regenerate `evals.json` from the **skills repo root**:
 
 ```bash
-python3 _eval-harness/scripts/jsonl_to_evals.py submit-pr/evals/prompts.jsonl --skill-name submit-pr
+python3 scripts/jsonl_to_evals.py submit-pr/evals/prompts.jsonl --skill-name submit-pr
 ```
 
 Replace `submit-pr` with your skill directory name. Full field list and workflow: [README.md §3](README.md#3-authoring-behavioral-evals-promptsjsonl).

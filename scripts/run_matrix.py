@@ -5,15 +5,15 @@ Default backend is **Cursor** (`agent -p`) when `agent` is on PATH; otherwise
 **Claude Code** (`claude -p`) if `claude` is on PATH. Override with `--backend` or
 `EVAL_MATRIX_BACKEND=cursor|claude`.
 
-Writes the directory layout expected by `_eval-harness/scripts/aggregate_benchmark.py` and
-`_eval-harness/scripts/matrix_scorecard.py`, then aggregates per (model, skill).
+Writes the directory layout expected by `scripts/aggregate_benchmark.py` and
+`scripts/matrix_scorecard.py`, then aggregates per (model, skill).
 
 Requirements:
   - Cursor: `agent` on PATH (`agent login`, optional `CURSOR_API_KEY` for CI).
   - Claude Code: `claude` on PATH (standard Claude Code CLI authentication).
   - Model ids must match the chosen backend (`agent --list-models` vs Anthropic ids).
 
-Examples (add skills repo bin/ to PATH — see _eval-harness/README.md §4):
+Examples (add _eval-harness/bin/ to PATH — see README.md §4):
   ev --list                                                  # auto-discovered skills + live model list
   ev --list-cli-models                                       # raw model slugs from the backend CLI
   ev --backend cursor -m composer-2-fast -s submit-pr        # one model × one skill, default config (with_skill)
@@ -41,8 +41,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+def harness_root_from_script() -> Path:
+    """Return the _eval-harness directory (parent of scripts/)."""
+    return Path(__file__).resolve().parent.parent
+
+
 def repo_root_from_script() -> Path:
-    return Path(__file__).resolve().parent.parent.parent
+    """Return the skills repository root (parent of _eval-harness/)."""
+    return harness_root_from_script().parent
 
 
 def discover_skills(repo_root: Path) -> list[dict]:
@@ -710,7 +716,7 @@ def main() -> None:
         "--repo-root",
         type=Path,
         default=None,
-        help="Skills repository root (default: parent of _eval-harness).",
+        help="Skills repository root for skill discovery (default: parent of _eval-harness).",
     )
     parser.add_argument(
         "--cwd",
@@ -723,7 +729,7 @@ def main() -> None:
         "--out",
         type=Path,
         default=None,
-        help="Run output directory (default: _eval-harness/results/<UTC timestamp>).",
+        help="Run output directory (default: results/<UTC timestamp> inside _eval-harness).",
     )
     configs_group = parser.add_mutually_exclusive_group()
     configs_group.add_argument(
@@ -895,7 +901,8 @@ def main() -> None:
         eval_id_filter = {int(x.strip()) for x in args.eval_ids.split(",") if x.strip()}
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
-    out_dir = Path(args.out or repo_root / "_eval-harness" / "results" / ts).resolve()
+    harness_root = harness_root_from_script()
+    out_dir = Path(args.out or harness_root / "results" / ts).resolve()
     cwd = Path(args.cwd or repo_root).resolve()
 
     backend = resolve_backend(args.backend)
@@ -966,7 +973,7 @@ def main() -> None:
                     bpath.write_text(json.dumps(data, indent=2) + "\n")
 
     if args.scorecard and not args.dry_run:
-        sc = repo_root / "_eval-harness" / "scripts" / "matrix_scorecard.py"
+        sc = harness_root / "scripts" / "matrix_scorecard.py"
         subprocess.run(
             [sys.executable, str(sc), str(out_dir), "--title", f"Eval matrix {ts}"],
             check=False,
