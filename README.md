@@ -1,7 +1,7 @@
 [README.md](https://github.com/user-attachments/files/27440958/README.md)
 # Skill eval harness (M2)
 
-This directory defines **behavioral evals** for Cursor skills in this repository, **cross-model benchmarking** against any model your installed CLI accepts (`agent --list-models` for Cursor, Anthropic ids for Claude Code), and scripts to compile prompt packs into `evals/evals.json` (schema: [`references/schemas.md`](references/schemas.md)).
+This directory defines **behavioral evals** for SKILL.md contained within the project skill directories (this _eval-harness directory should sit within your project `.cursor/skills`), **cross-model benchmarking** against any model your installed CLI accepts (`agent --list-models` for Cursor, Anthropic ids for Claude Code), and scripts to compile prompt packs into `evals/evals.json` (schema: [`references/schemas.md`](references/schemas.md)).
 
 **New here?** Start with [GETTING_STARTED.md](GETTING_STARTED.md) (PATH, auth, first `ev` run, compiling `prompts.jsonl`).
 
